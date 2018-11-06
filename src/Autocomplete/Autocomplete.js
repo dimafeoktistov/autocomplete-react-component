@@ -1,4 +1,4 @@
-import React, { Component, Fragment } from "react";
+import React, { Component } from "react";
 import PropTypes from "prop-types";
 import "./Autocomplete.css";
 
@@ -8,34 +8,28 @@ class Autocomplete extends Component {
   };
 
   static defaultProps = {
-    suggestions: []
+    suggestions: [],
+    onChange() {},
+    onSelect() {},
+    menuStyle: {
+      borderRadius: "3px",
+      boxShadow: "0 2px 12px rgba(0, 0, 0, 0.1)",
+      background: "rgba(255, 255, 255, 0.9)",
+      padding: "2px 0",
+      fontSize: "90%",
+      position: "fixed",
+      overflow: "auto",
+      maxHeight: "50%" // TODO: don't cheat, let it flow to the bottom
+    },
+    renderInput(props) {
+      return <input {...props} />;
+    }
   };
 
   state = {
     activeSuggestion: 0,
     filteredSuggestions: [],
-    showSuggestions: false,
-    userInput: ""
-  };
-
-  onChange = e => {
-    const { suggestions } = this.props;
-    const userInput = e.currentTarget.value;
-
-    // Filter our suggestions that don't contain the user's input
-    const filteredSuggestions = suggestions.filter(
-      suggestion =>
-        suggestion.toLowerCase().indexOf(userInput.toLowerCase()) > -1
-    );
-
-    // Update the user input and filtered suggestions, reset the active
-    // suggestion and make sure the suggestions are shown
-    this.setState({
-      activeSuggestion: 0,
-      filteredSuggestions,
-      showSuggestions: true,
-      userInput: e.currentTarget.value
-    });
+    showSuggestions: false
   };
 
   // Event fired when the user clicks on a suggestion
@@ -44,8 +38,7 @@ class Autocomplete extends Component {
     this.setState({
       activeSuggestion: 0,
       filteredSuggestions: [],
-      showSuggestions: false,
-      userInput: e.currentTarget.innerText
+      showSuggestions: false
     });
   };
 
@@ -80,24 +73,52 @@ class Autocomplete extends Component {
     }
   };
 
+  getFilteredSuggestions = props => {
+    const suggestions = props.suggestions;
+    const value = props.value;
+
+    console.log(suggestions);
+
+    // Filter our suggestions that don't contain the user's input
+    const filteredSuggestions = suggestions.filter(
+      suggestion => suggestion.toLowerCase().indexOf(value.toLowerCase()) > -1
+    );
+
+    this.setState({
+      ...this.state,
+      filteredSuggestions
+    });
+
+    return filteredSuggestions;
+  };
+
+  renderSuggestions = props => {
+    this.getFilteredSuggestions(props.suggestions).map((item, index) => {
+      return <div key={index}>{item}</div>;
+    });
+  };
+
+  handleChange = event => {
+    this.props.onChange(event, event.target.value);
+
+    this.setState({
+      ...this.state,
+      showSuggestions: true
+    });
+  };
+
   render() {
     const {
-      onChange,
       onClick,
       onKeyDown,
-      state: {
-        activeSuggestion,
-        filteredSuggestions,
-        showSuggestions,
-        userInput
-      }
+      state: { activeSuggestion, filteredSuggestions, showSuggestions }
     } = this;
 
-    let suggestionsListComponent;
+    let suggestionsList;
 
-    if (showSuggestions && userInput) {
+    if (showSuggestions) {
       if (filteredSuggestions.length) {
-        suggestionsListComponent = (
+        suggestionsList = (
           <ul class="suggestions">
             {filteredSuggestions.map((suggestion, index) => {
               let className;
@@ -116,7 +137,7 @@ class Autocomplete extends Component {
           </ul>
         );
       } else {
-        suggestionsListComponent = (
+        suggestionsList = (
           <div class="no-suggestions">
             <em>No suggestions, you're on your own!</em>
           </div>
@@ -125,17 +146,28 @@ class Autocomplete extends Component {
     }
 
     return (
-      <Fragment>
-        <input
-          type="text"
-          onChange={onChange}
-          onKeyDown={onKeyDown}
-          value={userInput}
-        />
-        {suggestionsListComponent}
-      </Fragment>
+      <div style={{ ...this.props.wrapperStyle }} {...this.props.wrapperProps}>
+        {this.props.renderInput({
+          ...this.props.inputProps,
+          autoComplete: "off",
+          onFocus: this.handleInputFocus,
+          onBlur: this.handleInputBlur,
+          onChange: this.handleChange,
+          onKeyDown: onKeyDown,
+          onClick: this.onClick,
+          value: this.props.value
+        })}
+        {this.renderSuggestions}
+      </div>
     );
   }
 }
 
 export default Autocomplete;
+
+// <input
+//           type="text"
+//           onChange={this.props.onChange}
+//           onKeyDown={onKeyDown}
+//           value={this.props.value}
+//         />
