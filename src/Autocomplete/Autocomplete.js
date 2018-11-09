@@ -1,4 +1,4 @@
-import React, { Component, Fragment } from "react";
+import React, { Component } from "react";
 import PropTypes from "prop-types";
 import "./Autocomplete.css";
 
@@ -61,8 +61,7 @@ class Autocomplete extends Component {
     this.setState({
       activeSuggestion: 0,
       filteredSuggestions: [],
-      showSuggestions: false,
-      userInput: e.currentTarget.innerText
+      showSuggestions: false
     });
 
     const { getItem } = this.props;
@@ -102,22 +101,50 @@ class Autocomplete extends Component {
     }
   };
 
+  getFilteredSuggestions = props => {
+    const suggestions = props.suggestions;
+    const value = props.value;
+
+    console.log(suggestions);
+
+    // Filter our suggestions that don't contain the user's input
+    const filteredSuggestions = suggestions.filter(
+      suggestion => suggestion.toLowerCase().indexOf(value.toLowerCase()) > -1
+    );
+
+    this.setState({
+      ...this.state,
+      filteredSuggestions
+    });
+
+    return filteredSuggestions;
+  };
+
+  renderSuggestions = props => {
+    this.getFilteredSuggestions(props.suggestions).map((item, index) => {
+      return <div key={index}>{item}</div>;
+    });
+  };
+
+  handleChange = event => {
+    this.props.onChange(event, event.target.value);
+
+    this.setState({
+      ...this.state,
+      showSuggestions: true
+    });
+  };
+
   render() {
     const {
-      onChange,
       onClick,
       onKeyDown,
-      state: {
-        activeSuggestion,
-        filteredSuggestions,
-        showSuggestions,
-        userInput
-      }
+      state: { activeSuggestion, filteredSuggestions, showSuggestions }
     } = this;
 
     let suggestionsList;
 
-    if (showSuggestions && userInput) {
+    if (showSuggestions) {
       if (filteredSuggestions.length) {
         suggestionsList = (
           <ul className={this.props.listClasses.suggestionList}>
