@@ -4,11 +4,27 @@ import "./Autocomplete.css";
 
 class Autocomplete extends Component {
   static propTypes = {
-    suggestions: PropTypes.instanceOf(Array)
+    // Use this props to add items to autocomplete
+    suggestions: PropTypes.array,
+    // Use this props to set up props for an input, such as placeholder for example
+    inputProps: PropTypes.object,
+    // Used to get items that was selected by user
+    getItem: PropTypes.func.isRequired,
+    // Used to define styles of input if you don't want to use it as class
+    inputStyles: PropTypes.object,
+    // Used to customize class of input
+    inputClass: PropTypes.string,
+    // Used to customize classes of the list
+    listClasses: PropTypes.objectOf(PropTypes.string)
   };
 
   static defaultProps = {
-    suggestions: []
+    inputProps: {},
+    inputClass: "",
+    listClasses: {
+      suggestionList: "suggestions",
+      activeSuggestion: "suggestion-active"
+    }
   };
 
   state = {
@@ -19,7 +35,7 @@ class Autocomplete extends Component {
   };
 
   onChange = e => {
-    const { suggestions } = this.props;
+    const { suggestions, getItem } = this.props;
     const userInput = e.currentTarget.value;
 
     // Filter our suggestions that don't contain the user's input
@@ -36,6 +52,7 @@ class Autocomplete extends Component {
       showSuggestions: true,
       userInput: e.currentTarget.value
     });
+    getItem(userInput);
   };
 
   // Event fired when the user clicks on a suggestion
@@ -47,11 +64,15 @@ class Autocomplete extends Component {
       showSuggestions: false,
       userInput: e.currentTarget.innerText
     });
+
+    const { getItem } = this.props;
+    getItem(e.target.innerText);
   };
 
   // Event fired when the user presses a key down
   onKeyDown = e => {
     const { activeSuggestion, filteredSuggestions } = this.state;
+    const { getItem } = this.props;
 
     // User pressed the enter key, update the input and close the
     // suggestions
@@ -61,6 +82,7 @@ class Autocomplete extends Component {
         showSuggestions: false,
         userInput: filteredSuggestions[activeSuggestion]
       });
+      getItem(filteredSuggestions[activeSuggestion]);
     }
     // User pressed the up arrow, decrement the index
     else if (e.keyCode === 38) {
@@ -93,18 +115,18 @@ class Autocomplete extends Component {
       }
     } = this;
 
-    let suggestionsListComponent;
+    let suggestionsList;
 
     if (showSuggestions && userInput) {
       if (filteredSuggestions.length) {
-        suggestionsListComponent = (
-          <ul class="suggestions">
+        suggestionsList = (
+          <ul className={this.props.listClasses.suggestionList}>
             {filteredSuggestions.map((suggestion, index) => {
               let className;
 
               // Flag the active suggestion with a class
               if (index === activeSuggestion) {
-                className = "suggestion-active";
+                className = this.props.listClasses.activeSuggestion;
               }
 
               return (
@@ -116,23 +138,23 @@ class Autocomplete extends Component {
           </ul>
         );
       } else {
-        suggestionsListComponent = (
-          <div class="no-suggestions">
-            <em>No suggestions, you're on your own!</em>
-          </div>
-        );
+        suggestionsList = null;
       }
     }
 
     return (
       <Fragment>
         <input
+          {...this.props.inputProps}
           type="text"
           onChange={onChange}
           onKeyDown={onKeyDown}
           value={userInput}
+          autoComplete="off"
+          className={this.props.inputClass}
+          style={{ ...this.props.inputStyles }}
         />
-        {suggestionsListComponent}
+        {suggestionsList}
       </Fragment>
     );
   }

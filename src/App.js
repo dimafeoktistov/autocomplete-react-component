@@ -3,6 +3,16 @@ import "./App.css";
 import Autocomplete from "./Autocomplete/Autocomplete";
 
 class App extends Component {
+  state = {
+    item: ""
+  };
+
+  getItem = item => {
+    this.setState({
+      item
+    });
+  };
+
   render() {
     return (
       <div className="App">
@@ -12,7 +22,7 @@ class App extends Component {
               "Корова",
               "Собака",
               "Буйвол",
-              "Ежик",
+              "Банан",
               "Воробей",
               "Крокодил",
               "Рептилия",
@@ -20,6 +30,7 @@ class App extends Component {
               "Хвост",
               "Папоротник"
             ]}
+            getItem={this.getItem}
           />
         </header>
       </div>
