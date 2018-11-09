@@ -61,7 +61,8 @@ class Autocomplete extends Component {
     this.setState({
       activeSuggestion: 0,
       filteredSuggestions: [],
-      showSuggestions: false
+      showSuggestions: false,
+      userInput: e.target.innerText
     });
 
     const { getItem } = this.props;
