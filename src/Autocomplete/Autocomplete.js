@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+import React, { Component, Fragment } from "react";
 import PropTypes from "prop-types";
 import "./Autocomplete.css";
 
@@ -139,7 +139,13 @@ class Autocomplete extends Component {
     const {
       onClick,
       onKeyDown,
-      state: { activeSuggestion, filteredSuggestions, showSuggestions }
+      onChange,
+      state: {
+        activeSuggestion,
+        filteredSuggestions,
+        showSuggestions,
+        userInput
+      }
     } = this;
 
     let suggestionsList;
